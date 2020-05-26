@@ -8,6 +8,7 @@ import { I18nProps, withNamespaces } from 'src/i18n'
 import Chevron, { Direction } from 'src/icons/chevron'
 import { colors } from 'src/styles'
 import { weiToDecimal } from 'src/utils/utils'
+import Hoverable from 'src/shared/Hoverable'
 
 class Text extends RNText {
   render() {
@@ -19,29 +20,46 @@ interface HeaderCellProps {
   style: any[]
   name: string
   order: boolean | null
+  tooltip?: string
   onClick: () => void
 }
 
-const HeaderCell = React.memo(function HeaderCellFn({
-  style,
-  name,
-  order,
-  onClick,
-}: HeaderCellProps) {
-  return (
-    <View onClick={onClick} style={[styles.tableHeaderCell, ...((style || []) as any)]}>
-      <Text>{name}</Text>
-      <Text
-        style={[
-          styles.tableHeaderCellArrow,
-          ...(order !== null ? [styles.tableHeaderCellArrowVisible] : []),
-        ]}
-      >
-        <Chevron direction={order ? Direction.up : Direction.down} color={colors.white} size={10} />
-      </Text>
-    </View>
-  )
-})
+class HeaderCell extends React.PureComponent<HeaderCellProps, { hover: boolean }> {
+  state = {
+    hover: false,
+  }
+
+  onHoverIn = () => this.setState({ hover: true })
+  onHoverOut = () => this.setState({ hover: false })
+
+  render() {
+    const { style, name, order, onClick, tooltip } = this.props
+    const { hover } = this.state
+    return (
+      <Hoverable onHoverIn={this.onHoverIn} onHoverOut={this.onHoverOut}>
+        <View onClick={onClick} style={[styles.tableHeaderCell, ...((style || []) as any)]}>
+          <Text>{name}</Text>
+          <Text
+            style={[
+              styles.tableHeaderCellArrow,
+              ...(order !== null ? [styles.tableHeaderCellArrowVisible] : []),
+            ]}
+          >
+            <Chevron
+              direction={order ? Direction.up : Direction.down}
+              color={colors.white}
+              size={10}
+            />
+          </Text>
+
+          {tooltip && hover && (
+            <Text style={[styles.tooltip, styles.tooltipHeader]}>{tooltip}</Text>
+          )}
+        </View>
+      </Hoverable>
+    )
+  }
+}
 
 interface Edges<T> {
   edges: Array<{
@@ -304,30 +322,35 @@ class ValidatorsList extends React.PureComponent<Props, State> {
               style={[styles.tableHeaderCellPadding]}
               name="Name"
               order={orderBy === 'name' ? orderAsc : null}
+              tooltip="Name of validator group and validators in it"
             />
             <HeaderCell
               onClick={this.orderByFn.total}
               style={[styles.sizeM]}
               name="Elected/ Total"
               order={orderBy === 'total' ? orderAsc : null}
+              tooltip="Number of validators in the group"
             />
             <HeaderCell
               onClick={this.orderByFn.votes}
               style={[styles.sizeXL]}
               name="Votes Available"
               order={orderBy === 'votes' ? orderAsc : null}
+              tooltip="% of total locked gold votes received"
             />
             <HeaderCell
               onClick={this.orderByFn.rawVotes}
               style={[styles.sizeM]}
               name="Votes"
               order={orderBy === 'rawVotes' ? orderAsc : null}
+              tooltip="Votes received as a percentage of capacity"
             />
             <HeaderCell
               onClick={this.orderByFn.votesAvailables}
               style={[styles.sizeM]}
               name="Votes Available"
               order={orderBy === 'votesAvailables' ? orderAsc : null}
+              tooltip="Vote capacity as a percentage of total locked gold"
             />
             <HeaderCell
               onClick={this.orderByFn.gold}
@@ -340,18 +363,21 @@ class ValidatorsList extends React.PureComponent<Props, State> {
               style={[styles.sizeM]}
               name="Group Share"
               order={orderBy === 'commision' ? orderAsc : null}
+              tooltip="Amount of Celo Gold locked by group/validator"
             />
             <HeaderCell
               onClick={this.orderByFn.rewards}
               style={[styles.sizeM]}
               name="Voter Rewards"
               order={orderBy === 'rewards' ? orderAsc : null}
+              tooltip="% of max possible rewards received"
             />
             {/* <HeaderCell
               onClick={this.orderByFn.uptime}
               style={[styles.sizeS]}
               name="Uptime"
               order={orderBy === 'uptime' ? orderAsc : null}
+              tooltip="Validator performance score"
             /> */}
             <HeaderCell
               onClick={this.orderByFn.attestation}

@@ -25,6 +25,7 @@ export default class Hoverable extends React.Component<Props, State> {
   }
 
   checkIfHoverEnabled = () => {
+    console.log('check')
     /**
      * Web browsers emulate mouse events (and hover states) after touch events.
      * This code infers when the currently-in-use modality supports hover
